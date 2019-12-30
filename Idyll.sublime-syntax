@@ -1,0 +1,128 @@
+%YAML 1.2
+---
+name: Idyll
+file_extensions:
+  - idl
+  - idyl
+  - idyll
+scope: source.idyll
+
+contexts:
+  main:
+    - include: comments
+    - include: components
+    - include: markdown
+
+  comments:
+    - match: '[^\:]\/\/'
+      scope: punctuation.definition.comment.line.idyll
+        - meta_scope: comment.line.idyll
+        - match: $\n?
+          pop: true
+    - match: '\/\*'
+      scope: punctuation.definition.comment.block.idyll
+      push:
+        - meta_scope: comment.block.idyll
+        - match: '\*\/'
+          scope: punctuation.definition.comment.block.end
+          pop: true
+
+  components:
+    - include: componentopen
+    - include: componentclose
+
+  componentopen:
+    - match: '(\[)([\w\.]+)'
+      captures:
+        1: punctuation.definition.tag.begin.idyll
+        2: entity.name.tag.idyll
+      push:
+        - meta_scope: component.open.idyll
+        - include: idyllattributes
+        - match: '(\])'
+          captures:
+            1: punctuation.definition.tag.end.idyll
+          pop: true
+
+  componentclose:
+    - match: '(\[\/)(\w.+)(\])'
+      captures:
+        0: component.close.idyll
+        1: punctuation.definition.tag.begin.idyll
+        2: entity.name.tag.idyll
+        3: punctuation.definition.tag.end.idyll
+      pop: true
+
+  idyllattributes:
+    - include: expressions
+    - include: strings
+    - include: numbers
+    - include: props
+
+  expressions:
+    - match: '`'
+      embed: Packages/JavaScript/JavaScript.sublime-syntax
+      embed_scope: source.idyll.expressions
+      escape: '`'
+
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin
+      push:
+        - meta_scope: string.quoted.double.idyll
+        - match: '"'
+          scope: punctuation.definition.string.end
+          pop: true
+
+  numbers:
+    - match: '\d*'
+      scope: constant.numeric.idyll
+
+  props:
+    - match: '\w*:'
+      scope: entity.other.attribute-name
+
+  markdown:
+    - include: headers
+    - include: bold
+    - include: italics
+    - include: numberedlists
+    - include: unnumberedlists
+
+  headers:
+    - match: '^[\s]{0,3}\#{1,6}\s+[^#]*'
+      scope: markup.heading.idyll
+
+  bold:
+    - match: '\*\*[^\s]'
+      push:
+        - meta_scope: markup.bold.idyll
+        - match: '[^\s]\*\*'
+          pop: true
+
+    - match: '\_\_[^\s]'
+      push:
+        - meta_scope: markup.bold.idyll
+        - match: '[^\s]\_\_'
+          pop: true
+
+  italics:
+    - match: '\*[^\s]'
+      push:
+        - meta_scope: markup.italic.idyll
+        - match: '[^\s]\*'
+          pop: true
+
+    - match: '\_[^\s\_]'
+      push:
+        - meta_scope: markup.italic.idyll
+        - match: '[^\s\_]\_'
+          pop: true
+
+  numberedlists:
+    - match: '^[\s]*\d+\.\s+'
+      scope: markup.list.numbered.idyll
+
+  unnumberedlists:
+    - match: '^[\s]*\*\s+'
+      scope: markup.list.unnumbered.idyll
